@@ -49,6 +49,13 @@ class index extends CoreAuthenticationNone {
       $this->session->task = "newestProjects";
     }
     
+    if(stristr($_SERVER['REQUEST_URI'], "catroid/search/?q=") === false) {
+      $this->session->searchQuery = "";
+      $this->session->task = "newestProjects";
+      $this->session->pageNr = 1;
+    }
+    
+    
     if(isset($_REQUEST['method']) || isset($_REQUEST['p'])) {
       if(isset($_REQUEST['method'])) {
         $this->session->pageNr = intval($_REQUEST['method']);

@@ -99,6 +99,14 @@ public class IndexTests extends BaseTest {
       openLocation("catroid/profile");
       ajaxWait();
       assertRegExp(".*/catroid/login.*", driver().getCurrentUrl());
+      
+      // opening BASE_URL
+      assertProjectPresent("testproject");
+      openLocation();
+      ajaxWait();
+      assertRegExp(".*/catroid/index/1", driver().getCurrentUrl());
+
+      
     } catch(AssertionError e) {
       captureScreen("IndexTests.location");
       throw e;
