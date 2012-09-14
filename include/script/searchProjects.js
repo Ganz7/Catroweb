@@ -70,7 +70,20 @@ var SearchProjects = Class.$extend( {
     }
   },
   
-  saveHistoryState : function() {    
+  checkHistoryStatesEqual : function(state1, state2) {
+    var equal = false;
+    if((state1 != null) && (state2 != null)) {      
+      equal = (state1.pageNr.prev === state2.pageNr.prev) 
+           && (state1.pageNr.current === state2.pageNr.current)
+           && (state1.pageNr.next === state2.pageNr.next) 
+           && (state1.searchQuery === state2.searchQuery)
+           && (state1.searchProjects === state2.searchProjects)
+           && (state1.pageContent === state2.searchProjects);
+    }
+    return equal;
+  },
+  
+  saveHistoryState : function() {
     if(history.pushState) {
       var stateObject = { pageNr: {}, pageContent: {}, pageLabels: new Array()};
       stateObject.pageNr = this.pageNr;
@@ -79,8 +92,9 @@ var SearchProjects = Class.$extend( {
       stateObject.pageContent = this.pageContent;
       stateObject.searchProjects = true;
       stateObject.language = $("#switchLanguage").val();
-	      
-      history.pushState(stateObject, "Page " + this.pageNr.current, this.basePath+"catroid/search/?q=" + escape(this.searchQuery) + "&p=" + this.pageNr.current);      
+      if(!this.checkHistoryStatesEqual(stateObject, history.state)) {
+        history.pushState(stateObject, "Page " + this.pageNr.current, this.basePath+"catroid/search/?q=" + escape(this.searchQuery) + "&p=" + this.pageNr.current);      
+      }
     }
   },
 
