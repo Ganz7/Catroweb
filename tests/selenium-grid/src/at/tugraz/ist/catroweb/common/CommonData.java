@@ -40,7 +40,7 @@ public class CommonData {
 
   public static String getRandomLongString(int strLen) {
     String str = "";
-    String chars = "abcdefghijklmnopqrstuvwxyz1234567890";
+    String chars = "abcdefghijklmnopqrstuvwxyz";
     for(int i = 0; i < strLen; i++) {
       java.util.Random rand = new java.util.Random();
       str += chars.charAt(rand.nextInt(chars.length()));

@@ -245,6 +245,14 @@ public class BaseTest {
     wait.until(jQueryReady());
   }
 
+  public void assertNotEquals(String string1, String string2) {
+    boolean locationNotEqual= true;
+    if(string1.compareTo(string2) == 0) {
+      locationNotEqual = false;
+    }
+    assertTrue(locationNotEqual);
+    
+  }
   public void assertRegExp(String pattern, String string) {
     boolean match = string.matches(pattern);
     if(!match) {

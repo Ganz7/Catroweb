@@ -78,7 +78,7 @@ var SearchProjects = Class.$extend( {
            && (state1.pageNr.next === state2.pageNr.next) 
            && (state1.searchQuery === state2.searchQuery)
            && (state1.searchProjects === state2.searchProjects)
-           && (state1.pageContent === state2.searchProjects);
+           && (JSON.stringify(state1.pageContent) === JSON.stringify(state2.pageContent));
     }
     return equal;
   },

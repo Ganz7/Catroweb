@@ -21,6 +21,7 @@ package at.tugraz.ist.catroweb.catroid;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.Select;
 import org.testng.annotations.Test;
+
 import static org.testng.AssertJUnit.*;
 
 import at.tugraz.ist.catroweb.BaseTest;
@@ -100,12 +101,11 @@ public class IndexTests extends BaseTest {
       ajaxWait();
       assertRegExp(".*/catroid/login.*", driver().getCurrentUrl());
       
-      // opening BASE_URL
+      // opening BASE_URL after searching for a project should not restore search state
       assertProjectPresent("testproject");
       openLocation();
       ajaxWait();
       assertRegExp(".*/catroid/index/1", driver().getCurrentUrl());
-
       
     } catch(AssertionError e) {
       captureScreen("IndexTests.location");
@@ -207,6 +207,7 @@ public class IndexTests extends BaseTest {
       driver().findElement(By.id("aIndexWebLogoLeft")).click();
       ajaxWait();
       assertRegExp("^" + CommonStrings.WEBSITE_TITLE + " - " + CommonStrings.NEWEST_PROJECTS_PAGE_TITLE + " - " + (1) + "$", driver().getTitle());
+          
     } catch(AssertionError e) {
       captureScreen("IndexTests.pageNavigation");
       throw e;
