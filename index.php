@@ -22,6 +22,7 @@
   require_once('config.php');
   require_once('passwords.php');
   require_once('commonFunctions.php');
+
   function __autoload($class) {
     $classfile = CORE_BASE_PATH.'classes/'.$class.'.php';
     if(is_file($classfile))
