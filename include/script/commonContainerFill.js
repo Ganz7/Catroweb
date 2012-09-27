@@ -142,11 +142,9 @@ var CommonContainerFill = Class
       },
 
       fill : function(result) {
-
         if(!this.params.container || this.params.container === 'undefined'){
           console.log("ERROR: no container ");
         }
-
         if(result.error){
           // TODO: error handling
           // self.showErrorPage(result.error['type'], result.error['code'],

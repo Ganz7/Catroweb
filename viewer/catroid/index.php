@@ -18,6 +18,9 @@
  */
 ?>
 <?php if($this->showCatroidDescription): ?>
+<a class="noLink" id="aIndexInfoboxDownloadButton" href="<?php echo BASE_PATH?>catroid/projects">
+                    <button class="button blue infobox">Projects</button>
+                  </a>
     <div id="catroidDescription" class="webMainMiddle">
       <div class="blueBoxMain">
         <div>

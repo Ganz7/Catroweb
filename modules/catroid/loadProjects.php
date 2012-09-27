@@ -70,10 +70,6 @@ class loadProjects extends CoreAuthenticationNone {
       $pageLabels['prevButton'] = $this->languageHandler->getString('prev_button', '&laquo;');
       $pageLabels['nextButton'] = $this->languageHandler->getString('next_button', '&raquo;');
       $pageLabels['loadingButton'] = $this->languageHandler->getString('loading_button');
-
-      $params = array();
-      $params['numProjectsPerPage'] = PROJECT_PAGE_NUM_PROJECTS_PER_PAGE;
-      $params['pageNr'] = intVal($this->session->pageNr);
       $this->pageLabels = $pageLabels;
     }
   }

@@ -1,4 +1,3 @@
-<h1>Welcome to Projects</h1>
 <div class="webMainMiddle">
       <div class="blueBoxMain">
         <div>

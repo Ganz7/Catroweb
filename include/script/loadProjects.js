@@ -4,6 +4,7 @@ var LoadProjects = Class.$extend({
     this.params = params;
     this.commonContainerFill = new CommonContainerFill(this.params);
     this.initialized = false;
+    this.ajaxRequestMutex = false;
     if(this.params == null){
       console.log("ERROR: params are NULL!");
       return;
@@ -18,20 +19,37 @@ var LoadProjects = Class.$extend({
       this.initialized = true;
     }
   },
-  
-  prevPage : function(params) {
-    this.params = params;
-    this.requestPage(this.params.pageNr);
+
+  tryAcquireAjaxMutex : function() {
+    if(!this.ajaxRequestMutex){
+      this.ajaxRequestMutex = true;
+      $("#projectContainer").fadeTo(100, 0.60);
+      return true;
+    }
+    return false;
   },
-  
+
+  releaseAjaxMutex : function() {
+    $("#projectContainer").fadeTo(10, 1.0);
+    this.ajaxRequestMutex = false;
+  },
+
+  prevPage : function(params) {
+    if(this.tryAcquireAjaxMutex()){
+      this.params = params;
+      this.requestPage(this.params.pageNr);
+    }
+  },
+
   nextPage : function(params) {
-    this.params = params;
-    this.requestPage(this.params.pageNr);
+    if(this.tryAcquireAjaxMutex()){
+      this.params = params;
+      this.requestPage(this.params.pageNr);
+    }
   },
 
   requestPage : function(pageNr) {
-    //TODO: ajax mutex
-    var self = this;    
+    var self = this;
     $.ajax({
       url : self.basePath + "catroid/loadProjects/" + pageNr + ".json",
       type : "POST",
@@ -46,10 +64,10 @@ var LoadProjects = Class.$extend({
         if(result != ""){
           console.log("request page " + pageNr + ": success!");
           self.commonContainerFill.fill(result);
-          // TODO:
-          // saveHistoryState();
-          // self.setDocumentTitle();
-          // unblockAjaxRequest();
+          self.ajaxResult = result;
+          self.saveHistoryState();
+          self.setDocumentTitle();
+          self.releaseAjaxMutex();
         }
       },
       error : function(result, errCode) {
@@ -58,6 +76,61 @@ var LoadProjects = Class.$extend({
         }
       }
     });
+  },
+
+  saveHistoryState : function() {
+    if(history.pushState){
+      var stateObject = {
+        params : new Array(),
+        ajaxResult : new Array(),
+        language : {}
+      };
+      stateObject.params = this.params;
+      stateObject.ajaxResult = this.ajaxResult;
+      stateObject.language = $("#switchLanguage").val();
+
+      history.pushState(stateObject, this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title']
+          + " - " + this.params.pageNr, this.basePath + "catroid/projects/" + this.params.pageNr);
+      console.log("pushing history state");
+      console.log(stateObject);
+    }
+  },
+
+  restoreHistoryState : function(state) {
+    if(state != null){
+      console.log('restoring history state!');
+      var isLanguageChanged = (state.language != $("#switchLanguage").val());
+
+      if((state.params.task == "newestProjects") || (state.params.task == "searchProjects")){
+        if(isLanguageChanged){
+          this.ajaxResult = null;
+          this.requestPage(this.params.pageNr);
+        } else{
+          this.params = state.params;
+          this.ajaxResult = state.ajaxResult;
+        }
+
+        if(state.params.task == "newestProjects"){
+          $("#normalHeaderButtons").toggle(true);
+          $("#cancelHeaderButton").toggle(false);
+          $("#headerSearchBox").toggle(false);
+        } else{
+          // TODO: restore search buttons
+        }
+
+        if(!isLanguageChanged){
+          this.setDocumentTitle();
+          this.commonContainerFill = new CommonContainerFill(this.params);
+          this.commonContainerFill.fill(state.ajaxResult);
+        }
+      }
+      this.initialized = true;
+    }
+  },
+
+  setDocumentTitle : function() {
+    document.title = this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title'] + " - "
+        + (this.params.pageNr + 1);
   },
 
 });
