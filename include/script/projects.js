@@ -10,7 +10,7 @@ var Projects = Class.$extend( {
     }
     
     window.onpopstate = function(event) {
-      console.log("restoring history state!!");
+      console.log("restoring history state!");
       console.log(event);
       if(event.state && ((event.state.params.task == "newestProjects") || (event.state.params.task == "searchProjects"))) {
         self.loadProjects.restoreHistoryState(event.state);        
@@ -29,8 +29,40 @@ var Projects = Class.$extend( {
     if((object.params.task == "newestProjects") || (object.params.task == "searchProjects")) {
       this.loadProjects.initialize(object);
     }
+    
+    $("#aIndexWebLogoLeft").click($.proxy(this.startPage, this));
+    $("#aIndexWebLogoMiddle").click($.proxy(this.startPage, this));
+    // TODO:
+//    $("#headerMenuButton").click(function() { self.newestProjects.saveStateToSession(self.newestProjects.pageNr.current); });
+    
     $("#fewerProjects").click($.proxy(object.prevPage, object));
     $("#moreProjects").click($.proxy(object.nextPage, object));
+    $("#searchForm").submit($.proxy(this.search, this));
+    $("#headerCancelButton").click($.proxy(this.cancelSearch, this));
+    
+  },
+  
+  search : function() {
+    if (this.params.state == "searchProjects") {
+      this.loadProjects.triggerSearch(true);
+    }
+    else if($.trim($("#searchQuery").val()) != "") {
+      this.params.task = "searchProjects";
+      this.loadProjects.updateParams(this.params);
+      this.loadProjects.triggerSearch(true);
+    }
+    return false;
+  },
+  
+  cancelSearch : function() {
+    console.log("cancelSearch!");
+    this.params.task = "newestProjects";
+    this.params.searchQuery = "";
+    this.params.pageNr = 1;
+    this.loadProjects.updateParams(this.params);
+    this.loadProjects.prevPage(this.params);
+    $("#searchQuery").val("");
+    
   },
   
   prevPage : function() {
@@ -42,6 +74,10 @@ var Projects = Class.$extend( {
     this.params.pageNr = (this.params.pageNr == this.params.pageNrMax)? this.params.pageNrMax : this.params.pageNr + 1;
     this.loadProjects.nextPage(this.params);
   },
+  
+  startPage : function() {
+    window.location = this.basePath + "catroid/index";
+  }
   
   
 });

@@ -38,7 +38,7 @@ class projects extends CoreAuthenticationNone {
   }
 
   public function __default() {
-  $this->numberOfPages = ceil($this->getNumberOfVisibleProjects() / PROJECT_PAGE_NUM_PROJECTS_PER_PAGE);
+    $this->numberOfPages = ceil($this->getNumberOfVisibleProjects() / PROJECT_PAGE_NUM_PROJECTS_PER_PAGE);
    
     if(!$this->session->pageNr) {
       $this->session->pageNr = 1;
@@ -59,6 +59,7 @@ class projects extends CoreAuthenticationNone {
         $this->session->pageNr = $this->numberOfPages;
       }
     }
+    
     if(isset($_SERVER['HTTP_REFERER']) && !$this->session->referer) {
       $this->session->referer = $_SERVER['HTTP_REFERER'];
     }
@@ -72,6 +73,10 @@ class projects extends CoreAuthenticationNone {
       $this->session->task = "searchProjects";
     }
     
+    if(!$this->session->sort) {
+      $this->session->sort = "newest";
+    }
+    
     if(isset($_REQUEST['sort'])) {
       switch($_REQUEST['sort']) {
         case 'downloads':
@@ -82,10 +87,7 @@ class projects extends CoreAuthenticationNone {
         default:
           $this->session->sort = 'newest';
       }
-    }
-    else {
-       $this->session->sort = "newest";
-    }
+    }    
 
     if(!$this->session->task) {
       $this->session->task = "newestProjects";
@@ -100,7 +102,7 @@ class projects extends CoreAuthenticationNone {
     
     $params = array();
     $params['numProjectsPerPage'] = PROJECT_PAGE_NUM_PROJECTS_PER_PAGE;
-    $params['pageNr'] = intVal($this->session->pageNr) - 1;
+    $params['pageNr'] = intVal($this->session->pageNr);
     $params['pageNrMax'] = $this->numberOfPages;
     $params['searchQuery'] = $this->session->searchQuery;
     $params['task'] = 'newestProjects';

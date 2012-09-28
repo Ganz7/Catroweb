@@ -22,6 +22,7 @@
  	<string name="uploaded">uploaded {*timeString*}</string>
 	<string name="uploaded_by">by {*nicknameString*}</string>
 	<string name="title">Newest Projects</string>
+	<string name="search_title">Search Projects</string>
 	<string name="page_number">Page {*character*}</string>
 	<string name="prev_button">{*character*} Newer</string>
 	<string name="next_button">Older {*character*}</string>

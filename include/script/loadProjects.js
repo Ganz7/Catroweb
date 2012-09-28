@@ -57,7 +57,7 @@ var LoadProjects = Class.$extend({
         task : self.params.task,
         page : pageNr,
         numProjectsPerPage : self.params.numProjectsPerPage,
-        query : self.searchQuery
+        query : self.params.searchQuery
       },
       timeout : (this.ajaxTimeout),
       success : function(result) {
@@ -78,6 +78,19 @@ var LoadProjects = Class.$extend({
     });
   },
 
+  checkHistoryStatesEqual : function(state1, state2) {
+    var equal = false;
+    if((state1 != null) && (state2 != null)){
+      equal = (state1.language === state2.language)
+      // && (JSON.stringify(state1.ajaxResults.pageLabels) ===
+      // JSON.stringify(state2.ajaxResults.pageLabels))
+      && (state1.params.pageNr === state2.params.pageNr) && (state1.params.searchQuery === state2.searchQuery)
+          && (state1.params.task === state2.params.task)
+          && (JSON.stringify(state1.ajaxResults) === JSON.stringify(state2.ajaxResults));
+    }
+    return equal;
+  },
+
   saveHistoryState : function() {
     if(history.pushState){
       var stateObject = {
@@ -89,10 +102,14 @@ var LoadProjects = Class.$extend({
       stateObject.ajaxResult = this.ajaxResult;
       stateObject.language = $("#switchLanguage").val();
 
-      history.pushState(stateObject, this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title']
-          + " - " + this.params.pageNr, this.basePath + "catroid/projects/" + this.params.pageNr);
-      console.log("pushing history state");
-      console.log(stateObject);
+      if(!this.checkHistoryStatesEqual(stateObject, history.state)){
+        console.log("pushing history state");
+        console.log(stateObject);
+        history.pushState(stateObject, this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title']
+            + " - " + this.params.pageNr, this.basePath + "catroid/projects/" + this.params.pageNr);
+      } else
+        console.log("history states equal, skipping!");
+
     }
   },
 
@@ -115,12 +132,14 @@ var LoadProjects = Class.$extend({
           $("#cancelHeaderButton").toggle(false);
           $("#headerSearchBox").toggle(false);
         } else{
-          // TODO: restore search buttons
+          $("#normalHeaderButtons").toggle(false);
+          $("#cancelHeaderButton").toggle(true);
+          $("#headerSearchBox").toggle(true);
+          $("#searchQuery").focus();
         }
 
         if(!isLanguageChanged){
           this.setDocumentTitle();
-          this.commonContainerFill = new CommonContainerFill(this.params);
           this.commonContainerFill.fill(state.ajaxResult);
         }
       }
@@ -128,9 +147,42 @@ var LoadProjects = Class.$extend({
     }
   },
 
+  updateParams : function(params) {
+    this.params = params;
+    console.log("loadProjects update", this.params.task);
+    this.commonContainerFill.updateParams(this.params);
+  },
+
+  triggerSearch : function(loadAndCache) {
+    console.log("triggering search! load=", loadAndCache);
+    var search = $.trim($("#searchQuery").val());
+    if(search != ""){
+      if(this.tryAcquireAjaxMutex()){
+        this.params.searchQuery = search;
+        this.params.ajaxContent = null;
+        this.params.pageNr = 1;
+        if(loadAndCache){
+          this.requestPage(this.params.pageNr);
+        } else{
+          this.releaseAjaxMutex();
+        }
+      }
+    }
+  },
+
+  test : function() {
+    console.log(this);
+  },
+
   setDocumentTitle : function() {
-    document.title = this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title'] + " - "
-        + (this.params.pageNr + 1);
+    if(this.params.task == "newestProjects"){
+      document.title = this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title'] + " - "
+          + (this.params.pageNr);
+    } else if(this.params.task == "searchProjects"){
+      document.title = this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title'] + " - " + this.params.searchQuery
+          + " - " + this.params.pageNr;
+    }
+
   },
 
 });

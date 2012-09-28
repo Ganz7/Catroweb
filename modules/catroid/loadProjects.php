@@ -37,13 +37,18 @@ class loadProjects extends CoreAuthenticationNone {
      
     if(isset($_REQUEST)) {
       $this->ajax = true;
+      
+      $this->request = $_REQUEST;
+      if(isset($_REQUEST['query'])) {
+        $this->searchQuery = $_REQUEST['query'];
+      }
 
       if(isset($_REQUEST['method'])) {
         if($_REQUEST['method'] == 'random'){
           $_REQUEST['sort'] = 'random';
         }
         else {
-          $this->pageNr = intval($_REQUEST['method'])-1;
+          $this->pageNr = intval($_REQUEST['method']) - 1;
         }
       }
 
@@ -55,22 +60,101 @@ class loadProjects extends CoreAuthenticationNone {
       $offset = 0;
 
       if(isset($_REQUEST['page'])) {
-        $this->pageNr = intval($_REQUEST['page']);
-        $offset = ($this->pageNr)*$limit;
+        $this->pageNr = intval($_REQUEST['page']) - 1;
+        $offset = max(0,($this->pageNr)*$limit);
       }
 
       $this->session->pageNr = $this->pageNr;
-      $this->content = $this->getProjects($_REQUEST['sort'], $limit, $offset);
-      $this->buttons = array("prevButton" => ($this->pageNr == 0)? false : true, "nextButton" => (count($this->content) == PROJECT_PAGE_NUM_PROJECTS_PER_PAGE)? true : false);
-
       $pageLabels = array();
-      $pageLabels['websitetitle'] = SITE_DEFAULT_TITLE;
-      $pageLabels['title'] = $this->languageHandler->getString('title');
+      if($_REQUEST['task'] == "searchProjects") {
+        $this->content = $this->retrieveSearchResultsFromDatabase($this->searchQuery, $this->pageNr, $_REQUEST['sort']);
+        $pageLabels['title'] = $this->languageHandler->getString('search_title');
+      }
+      
+      else if($_REQUEST['task'] == "newestProjects") {
+        $pageLabels['title'] = $this->languageHandler->getString('title');
+        $this->content = $this->getProjects($_REQUEST['sort'], $limit, $offset);
+      }
+      
+      $this->buttons = array("prevButton" => ($this->pageNr == 0)? false : true, "nextButton" => (count($this->content) == PROJECT_PAGE_NUM_PROJECTS_PER_PAGE)? true : false);
+    
+      $pageLabels['websitetitle'] = SITE_DEFAULT_TITLE;          
       $pageLabels['pageNr'] = $this->languageHandler->getString('page_number',  intVal($this->session->pageNr + 1 ));
       $pageLabels['prevButton'] = $this->languageHandler->getString('prev_button', '&laquo;');
       $pageLabels['nextButton'] = $this->languageHandler->getString('next_button', '&raquo;');
       $pageLabels['loadingButton'] = $this->languageHandler->getString('loading_button');
       $this->pageLabels = $pageLabels;
+    }
+  }
+  
+  public function retrieveSearchResultsFromDatabase($keywords, $pageNr, $sort) {
+    if($pageNr < 0) {
+      return "NIL";
+    }
+  
+    if(!isset($sort) || $sort == "") {
+      //$this->pageNr = intval($_REQUEST['method'])-1;
+      $sort = 'newestProjects';
+    }
+  
+    $searchTerms = explode(" ", $keywords);
+    $keywordsCount = 3;
+    $searchQuery = "";
+    $searchRequest = array();
+  
+    foreach($searchTerms as $term) {
+      if ($term != "") {
+        $searchQuery .= (($searchQuery=="")?"":" OR " )."title ILIKE \$".$keywordsCount;
+        $searchQuery .= " OR description ILIKE \$".$keywordsCount;
+        $searchTerm = pg_escape_string(preg_replace("/\\\/", "\\\\\\", checkUserInput($term)));
+        $searchTerm = preg_replace(array("/\%/", "/\_/"), array("\\\%", "\\\_"), $searchTerm);
+        array_push($searchRequest, "%".$searchTerm."%");
+        $keywordsCount++;
+      }
+    }
+  
+    $orderBy = 'upload_time';
+    switch($sort) {
+      case 'downloads':
+        $orderBy = "download_count";
+        break;
+      case 'views':
+        $orderBy = "view_count";
+        break;
+      default:
+        $orderBy = "upload_time";
+    }
+  
+  
+    pg_prepare($this->dbConnection, "get_search_results", "SELECT projects.id, projects.title, projects.upload_time, projects.view_count, projects.download_count, cusers.username AS uploaded_by FROM projects, cusers WHERE ($searchQuery) AND visible = 't' AND cusers.id=projects.user_id ORDER BY ($orderBy) DESC  LIMIT \$1 OFFSET \$2") or
+    $this->errorHandler->showErrorPage('db', 'query_failed', pg_last_error());
+    $result = pg_execute($this->dbConnection, "get_search_results", array_merge(array(PROJECT_PAGE_NUM_PROJECTS_PER_PAGE, PROJECT_PAGE_NUM_PROJECTS_PER_PAGE * $pageNr), $searchRequest)) or
+    $this->errorHandler->showErrorPage('db', 'query_failed', pg_last_error());
+    $projects = pg_fetch_all($result);
+    pg_query($this->dbConnection, 'DEALLOCATE get_search_results');
+    pg_free_result($result);
+    if($projects[0]['id']) {
+      $i=0;
+      foreach($projects as $project) {
+        $projects[$i]['title'] = $projects[$i]['title'];
+        $projects[$i]['title_short'] = makeShortString($project['title'], PROJECT_TITLE_MAX_DISPLAY_LENGTH);
+        $projects[$i]['upload_time'] =  $this->languageHandler->getString('uploaded', getTimeInWords(strtotime($project['upload_time']), $this->languageHandler, time()));
+        $projects[$i]['thumbnail'] = getProjectThumbnailUrl($project['id']);
+        $projects[$i]['download_count'] = isset($projects[$i]['download_count'])? $projects[$i]['download_count'] : '';
+        $projects[$i]['view_count'] = isset($projects[$i]['view_count'])? $projects[$i]['view_count'] : '';
+        $projects[$i]['uploaded_by_string'] = $this->languageHandler->getString('uploaded_by', $projects[$i]['uploaded_by']);
+        $i++;
+      }
+      return($projects);
+    } elseif($pageNr == 0) {
+      $projects[0]['id'] = 0;
+      $projects[0]['title'] = $this->languageHandler->getString('no_results');
+      $projects[0]['title_short'] = $this->languageHandler->getString('no_results');
+      $projects[0]['upload_time'] =  "";
+      $projects[0]['thumbnail'] = BASE_PATH."images/symbols/thumbnail_gray.jpg";
+      return($projects);
+    } else {
+      return "NIL";
     }
   }
 

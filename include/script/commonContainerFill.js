@@ -8,6 +8,14 @@ var CommonContainerFill = Class
 
         this.createSkeletonHandler(this.params.view);
       },
+      
+      updateParams : function(params) {
+        if(this.params.view != params.view) {
+          this.createSkeletonHandler(this.params.view);         
+        }
+        console.log("commonContainer update" , this.params.task);
+        this.params = params;
+      },
 
       createSkeletonHandler : function(view) {
         switch(view) {
