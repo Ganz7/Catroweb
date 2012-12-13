@@ -1,17 +1,27 @@
 var LoadProjects = Class.$extend({
   __include__ : [__baseClassVars],
-  __init__ : function(params) {
-    this.params = params;
-    this.commonContainerFill = new CommonContainerFill(this.params);
+  __init__ : function(cbParams) {
+    console.log("= = = ", "loadProjects");
+    this.cbParams = cbParams;
+    
+    this.params = cbParams.call(this);
+    
+    this.commonContainerFill = new CommonContainerFill(this.cbParams);
     this.initialized = false;
     this.ajaxRequestMutex = false;
-    if(this.params == null){
-      console.log("ERROR: params are NULL!");
-      return;
-    }
+//    if(this.params == null){
+//      console.log("ERROR: params are NULL!");
+//      return;
+//    }
+    console.log("= = =", "END");
+  },
+  
+  getInstance : function() {
+    return this;
   },
 
   initialize : function(object) {
+    console.log("===================================================== loadprojects");
     if(!this.initialized){
       this.object = object;
       // TODO: set loading page
@@ -32,6 +42,16 @@ var LoadProjects = Class.$extend({
   releaseAjaxMutex : function() {
     $("#projectContainer").fadeTo(10, 1.0);
     this.ajaxRequestMutex = false;
+  },
+  
+  loadPage : function(params) {
+    if(this.tryAcquireAjaxMutex()){
+//    this.params = cbParams.call(this);
+//    console.log(this.params);
+      this.params = params;
+      this.requestPage(this.params.pageNr);
+//      this.requestPage(this.cbParams.call().pageNr);
+    }
   },
 
   prevPage : function(params) {
@@ -64,6 +84,7 @@ var LoadProjects = Class.$extend({
         if(result != ""){
           console.log("request page " + pageNr + ": success!");
           self.commonContainerFill.fill(result);
+          console.debug("result", result);
           self.ajaxResult = result;
           self.saveHistoryState();
           self.setDocumentTitle();
@@ -92,24 +113,26 @@ var LoadProjects = Class.$extend({
   },
 
   saveHistoryState : function() {
-    if(history.pushState){
+    if(history.pushState){      
       var stateObject = {
         params : new Array(),
-        ajaxResult : new Array(),
-        language : {}
+        ajaxResult : new Array(), 
+        language : {},
+        callback : {}
       };
       stateObject.params = this.params;
       stateObject.ajaxResult = this.ajaxResult;
       stateObject.language = $("#switchLanguage").val();
-
+      stateObject.callback =  this.params.task + ".restore";
+ 
+      
       if(!this.checkHistoryStatesEqual(stateObject, history.state)){
-        console.log("pushing history state");
-        console.log(stateObject);
+        console.debug("pushing history state");
+        console.debug(stateObject);
         history.pushState(stateObject, this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title']
             + " - " + this.params.pageNr, this.basePath + "catroid/projects/" + this.params.pageNr);
       } else
         console.log("history states equal, skipping!");
-
     }
   },
 
@@ -175,7 +198,10 @@ var LoadProjects = Class.$extend({
   },
 
   setDocumentTitle : function() {
-    if(this.params.task == "newestProjects"){
+    // TODO: move to projects.js
+    console.log("thiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii", this.params);
+    console.log("this.params.pageLabels['websitetitle'] ", this.params.pageLabels['title'] );
+    if(1){
       document.title = this.params.pageLabels['websitetitle'] + " - " + this.params.pageLabels['title'] + " - "
           + (this.params.pageNr);
     } else if(this.params.task == "searchProjects"){

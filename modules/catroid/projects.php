@@ -31,6 +31,9 @@ class projects extends CoreAuthenticationNone {
       $this->addCss('projectList_nohtml5.css');
     }
     $this->addCss('index.css');
+//     $this->addJs('historyHandler.js');
+    $this->addJs('projectsTaskDefault.js');
+    $this->addJs('projectsTaskSearch.js');
     $this->addJs('loadProjects.js');
     $this->addJs('commonContainerFill.js');
     $this->addJs('projects.js');
@@ -42,7 +45,7 @@ class projects extends CoreAuthenticationNone {
    
     if(!$this->session->pageNr) {
       $this->session->pageNr = 1;
-      $this->session->task = "newestProjects";
+      $this->session->task = "projectsTaskDefault";
     }
     
     if(isset($_REQUEST['method']) || isset($_REQUEST['p'])) {
@@ -65,7 +68,7 @@ class projects extends CoreAuthenticationNone {
     }
     if(isset($_SERVER['HTTP_REFERER']) && $this->session->referer != $_SERVER['HTTP_REFERER']) {
       $this->session->referer = $_SERVER['HTTP_REFERER'];
-      $this->session->task = "newestProjects";
+      $this->session->task = "projectsTaskDefault";
     }
 
     if(isset($_REQUEST['q'])) {
@@ -90,7 +93,7 @@ class projects extends CoreAuthenticationNone {
     }    
 
     if(!$this->session->task) {
-      $this->session->task = "newestProjects";
+      $this->session->task = "projectsTaskDefault";
     }
 
     $this->task = $this->session->task;
@@ -105,7 +108,8 @@ class projects extends CoreAuthenticationNone {
     $params['pageNr'] = intVal($this->session->pageNr);
     $params['pageNrMax'] = $this->numberOfPages;
     $params['searchQuery'] = $this->session->searchQuery;
-    $params['task'] = 'newestProjects';
+    $params['task'] = 'projectsTaskDefault';
+    $params['defaultTask'] = 'projectsTaskDefault';
     $params['view'] = 'projectsByRow';
     $params['container'] = '#projectContainer';
     $this->projectParams = "'".json_encode($params)."'";

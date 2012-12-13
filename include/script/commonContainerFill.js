@@ -1,8 +1,8 @@
 var CommonContainerFill = Class
     .$extend({
       __include__ : [__baseClassVars],
-      __init__ : function(params) {
-        this.params = params;
+      __init__ : function(cbParams) {
+        this.params = cbParams.call(this);
         this.initialized = false;
         this.fillSkeleton = null;
 
@@ -24,8 +24,7 @@ var CommonContainerFill = Class
           this.fillSkeleton = this.fillSkeletonRow;
           break;
         default:
-          this.createSkeletonWall();
-          this.fillSkeleton = this.fillSkeletonWall;
+          console.log("commonContainerFill: ERROR: no such view ", view);
         }
       },
 
@@ -154,7 +153,7 @@ var CommonContainerFill = Class
           console.log("ERROR: no container ");
         }
         if(result.error){
-          // TODO: error handling
+          // TODO: error handling: callback
           // self.showErrorPage(result.error['type'], result.error['code'],
           // result.error['extra']);
           console.log("request page " + result.projects.pageNr + ": failed!");

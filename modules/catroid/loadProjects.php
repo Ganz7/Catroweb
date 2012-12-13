@@ -71,7 +71,7 @@ class loadProjects extends CoreAuthenticationNone {
         $pageLabels['title'] = $this->languageHandler->getString('search_title');
       }
       
-      else if($_REQUEST['task'] == "newestProjects") {
+      else if($_REQUEST['task'] == "projectsTaskDefault") {
         $pageLabels['title'] = $this->languageHandler->getString('title');
         $this->content = $this->getProjects($_REQUEST['sort'], $limit, $offset);
       }
@@ -94,7 +94,7 @@ class loadProjects extends CoreAuthenticationNone {
   
     if(!isset($sort) || $sort == "") {
       //$this->pageNr = intval($_REQUEST['method'])-1;
-      $sort = 'newestProjects';
+      $sort = 'projectsTaskDefault';
     }
   
     $searchTerms = explode(" ", $keywords);
